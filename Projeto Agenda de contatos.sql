@@ -57,7 +57,7 @@ select id, nome from contatos order by id asc;
 
 
 Select *from contatos where id = 1;
-select *from contatos where nome = 'Djeniffer_vidal';
+select *from contatos where nome = 'Matheus';
 select *from contatos where nome like 'ga%';
 
 

@@ -345,8 +345,7 @@ public class Clientes extends JDialog {
 						JOptionPane.showMessageDialog(null, "Dados do cliente atualizados", "Messagem", JOptionPane.INFORMATION_MESSAGE);					
 					}
 					con .close();
-					limpar();
-					
+					limpar();					
 				}catch(java.sql.SQLIntegrityConstraintViolationException ex) {
 					JOptionPane.showMessageDialog(null, "E-mail já cadastrado\nCadastre um novo E-mail", "Atenção", JOptionPane.WARNING_MESSAGE);					
 					txtEmail.setText(null);

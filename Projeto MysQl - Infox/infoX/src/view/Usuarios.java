@@ -62,6 +62,7 @@ public class Usuarios extends JDialog {
 	 * Create the dialog.
 	 */
 	public Usuarios() {
+		setResizable(false);
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowActivated(WindowEvent e) {
@@ -171,7 +172,12 @@ public class Usuarios extends JDialog {
 		btnEditar.setEnabled(false);
 		btnEditar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				editarUsuario();
+				if (chkSenha.isSelected()) {
+					editarUsuario();
+				}else {
+					editarUsuarioPersonalizado();
+				}
+		
 
 			}
 		});

@@ -28,6 +28,8 @@ import javax.swing.table.DefaultTableModel;
 
 import model.DAO;
 import net.proteanit.sql.DbUtils;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class OrdemServico extends JDialog {
 	private JTextField txtPesquisar;
@@ -98,6 +100,12 @@ public class OrdemServico extends JDialog {
 		desktopPane.add(scrollPane);
 
 		table = new JTable();
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				setarCampos();
+			}
+		});
 		scrollPane.setViewportView(table);
 
 		JPanel panel = new JPanel();
@@ -107,16 +115,22 @@ public class OrdemServico extends JDialog {
 		panel.setLayout(null);
 
 		JLabel lblNewLabel_2 = new JLabel("Data: ");
-		lblNewLabel_2.setBounds(192, 27, 46, 14);
+		lblNewLabel_2.setBounds(145, 27, 46, 14);
 		panel.add(lblNewLabel_2);
 
 		txtData = new JTextField();
 		txtData.setEditable(false);
-		txtData.setBounds(248, 24, 86, 20);
+		txtData.setBounds(182, 24, 152, 20);
 		panel.add(txtData);
 		txtData.setColumns(10);
 
 		txtOS = new JTextField();
+		txtOS.setEditable(false);
+		txtOS.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				pesquisarOS();
+			}
+		});
 		txtOS.setBounds(10, 24, 109, 20);
 		panel.add(txtOS);
 		txtOS.setColumns(10);
@@ -164,7 +178,8 @@ public class OrdemServico extends JDialog {
 		btnPesquisar = new JButton("");
 		btnPesquisar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				pesquisarOs();
+				pesquisarOS();
+			
 			}
 		});
 		btnPesquisar.setIcon(new ImageIcon(OrdemServico.class.getResource("/img/read.png")));
@@ -172,6 +187,7 @@ public class OrdemServico extends JDialog {
 		getContentPane().add(btnPesquisar);
 
 		btnEditar = new JButton("");
+		btnEditar.setEnabled(false);
 		btnEditar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				editarOS();
@@ -182,6 +198,7 @@ public class OrdemServico extends JDialog {
 		getContentPane().add(btnEditar);
 
 		btnExcluir = new JButton("");
+		btnExcluir.setEnabled(false);
 		btnExcluir.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				excluirOS();
@@ -213,6 +230,7 @@ public class OrdemServico extends JDialog {
 		txtTecnico.setColumns(10);
 		
 		txtValor = new JTextField();
+		txtValor.setText("0");
 		txtValor.setBounds(496, 26, 106, 20);
 		panel_1.add(txtValor);
 		txtValor.setColumns(10);
@@ -257,7 +275,7 @@ public class OrdemServico extends JDialog {
 
 	private void pesquisarCliente() {
 		// ? --> paramentro
-		String read = "select idcli as ID, nomecli as Cliente, fonecli as Fone,cepcli as CEP from clientes where nomecli like  ?";
+		String read = "select idcli as ID, nomecli as Cliente, fonecli as Fone from clientes where nomecli like  ?";
 		try {
 			// abrir a conexao com o banco
 			Connection con = dao.conectar();
@@ -282,7 +300,7 @@ public class OrdemServico extends JDialog {
 	/**
 	 * Metodo responsavel pela pesquisa da OS
 	 */
-	private void pesquisarOs() {
+	private void pesquisarOS() {
 		// tecnica usada para capturar
 		String numOs = JOptionPane.showInputDialog("Número da OS");
 		String read = "select * from tbos where os=" + numOs;
@@ -300,7 +318,7 @@ public class OrdemServico extends JDialog {
 		chkOrcamento.setSelected(true);
 		tipo = "Orçamento";
 		}
-		txtId.setText(rs.getString(9));
+		
 		txtOS.setText(rs.getString(1));
 		txtData.setText(rs.getString(2));
 		txtEquipamento.setText(rs.getString(5));
@@ -309,7 +327,11 @@ public class OrdemServico extends JDialog {
 		txtDefeito.setText(rs.getString(6));
 		cboStatus.setSelectedItem(rs.getString(4).toString());
 		txtPesquisar.setEnabled(false);
-
+		txtId.setText(rs.getString(9));
+		btnAdicionar.setEnabled(false);
+		btnPesquisar.setEnabled(true);
+		btnEditar.setEnabled(true);
+		btnExcluir.setEnabled(true);
 		 } else {
 		JOptionPane.showMessageDialog(null, "O.S Não Localizada!!", "Atenção!!", JOptionPane.ERROR_MESSAGE);
 		}
@@ -320,31 +342,45 @@ public class OrdemServico extends JDialog {
 		 }
 
 		 }
-
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	private void setarCampos() {
+		// A linha abaixo optem o conteudo da linha da tabela
+		// int (indice = colunas) [0] [1] [2] ....
+		int setar = table.getSelectedRow();
+		// Setar os campos
+		txtId.setText(table.getModel().getValueAt(setar, 0).toString());
+	} // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	/**
 	 * Metodo responsavel por emitir OS
 	 */
 	private void emitirOs() {
-		if (txtId.getText().isEmpty()) {
-		JOptionPane.showMessageDialog(null, "Preencha o ID do cliente ", "Atenção", JOptionPane.WARNING_MESSAGE);
-		txtId.requestFocus();			
-		} else if (tipo == null) {		
-			JOptionPane.showMessageDialog(null, "Selecione o tipo de OS ", "Atenção", JOptionPane.WARNING_MESSAGE);
+		if (txtEquipamento.getText().isEmpty()) {
+		JOptionPane.showMessageDialog(null, "Preencha o campo Equipamento ", "Atenção", JOptionPane.WARNING_MESSAGE);
+		txtEquipamento.requestFocus();			
+		} else if (txtTecnico.getText().isEmpty()) {		
+			JOptionPane.showMessageDialog(null, "Preencha o campo Tecnico", "Atenção", JOptionPane.WARNING_MESSAGE);
+			txtTecnico.requestFocus();
+		} else if (txtDefeito.getText().isEmpty()) {
+			JOptionPane.showMessageDialog(null, "Preencha o campo Defeito ", "Atenção", JOptionPane.WARNING_MESSAGE);
+			txtDefeito.requestFocus();
+		} else if (tipo == null) {
+			JOptionPane.showMessageDialog(null, "Selecione o tipo de OS", "Atenção !", JOptionPane.WARNING_MESSAGE);
 			chkOrcamento.requestFocus();
-		} else {
-			String create = "insert into clientes (os, dataos, statusos, equipamentoos, defeitoos, tecnicoos, valoros, idcli) values (?,?,?,?,?,?,?,?,?)";
+		}
+		else {
+			String create = "insert into tbos (tipoos, statusos, equipamentoos, defeitoos, tecnicoos, valoros, idcli) values (?,?,?,?,?,?,?)";
 		
 			try {
 				Connection con = dao.conectar();
 				PreparedStatement pst = con.prepareStatement(create);
-				pst.setString(1, txtOS.getText());
-				pst.setString(2, txtData.getText());
-				pst.setString(4, cboStatus.getSelectedItem().toString());
-				pst.setString(5, txtEquipamento.getText());
-				pst.setString(6, txtDefeito.getText());
-				pst.setString(7, txtTecnico.getText());
-				pst.setString(8, txtValor.getText());
-				pst.setString(9, txtId.getText());
+			
+				pst.setString(1, tipo);
+				pst.setString(2, cboStatus.getSelectedItem().toString());
+				pst.setString(3, txtEquipamento.getText());
+				pst.setString(4, txtDefeito.getText());
+				pst.setString(5, txtTecnico.getText());
+				pst.setString(6, txtValor.getText());
+				pst.setString(7, txtId.getText());
 			
 
 				int confirma = pst.executeUpdate();
@@ -367,37 +403,30 @@ public class OrdemServico extends JDialog {
 		
 
 		// Validação de campos obrigatarios
-		if (txtData.getText().isEmpty()) {
-			JOptionPane.showMessageDialog(null, "Preencha o campo Data", "Atenção", JOptionPane.WARNING_MESSAGE);
-			txtData.requestFocus();
-		} else if (cboStatus.getSelectedItem().equals("")) {
-			JOptionPane.showMessageDialog(null, "Selecione a opção Status ", "Atenção", JOptionPane.WARNING_MESSAGE);
+		if (cboStatus.getSelectedItem().equals("")) {
+			JOptionPane.showMessageDialog(null, "Preencha o campo Status", "Atenção", JOptionPane.WARNING_MESSAGE);
 			cboStatus.requestFocus();
 		} else {
 			// Editar os dados do cliente
-			String update = "update tbos set os=?, dataos=?, statusos=?, equipamentosos=?, defeitosos=?, tecnicoos=?, valoros=?  where idcli=?";
+			String update = "update tbos set dataos=?, tipoos=?, statusos=?, equipamentosos=?, defeitosos=?, tecnicoos=?, valoros=,idcli=?  where os=?";
 
 			try {
 				Connection con = dao.conectar();
 				PreparedStatement pst = con.prepareStatement(update);
-				pst.setString(1,txtOS.getText());
-				pst.setString(2,txtData.getText());
-				pst.setString(3,chkOrcamento.getText());
-				pst.setString(4,chkServico.getText());
-				pst.setString(5,cboStatus.getSelectedItem().toString());
-				pst.setString(6,txtEquipamento.getText());
-				pst.setString(7,txtDefeito.getText());
-				pst.setString(8,txtTecnico.getText());
-				pst.setString(9,txtValor.getText());
-				pst.setString(10,txtId.getText());
-				
-				
-				
-				//Criando uma variavel que irá executar a query e receber o valor 1 em cado positivo (inserção do cliente no banco)
+				pst.setString(1,txtData.getText());
+				pst.setString(2,tipo);
+				pst.setString(3,cboStatus.getSelectedItem().toString());
+				pst.setString(4,txtEquipamento.getText());
+				pst.setString(5,txtDefeito.getText());
+				pst.setString(6,txtTecnico.getText());
+				pst.setString(7,txtValor.getText());
+				pst.setString(8,txtId.getText());
+				pst.setString(9,txtOS.getText());
+							//Criando uma variavel que irá executar a query e receber o valor 1 em cado positivo (inserção do cliente no banco)
 				//positivo (edição do cliente no banco)
 				int confirma = pst.executeUpdate();
 				if (confirma == 1) {
-					JOptionPane.showMessageDialog(null, "Dados do cliente atualizados", "Messagem", JOptionPane.INFORMATION_MESSAGE);					
+					JOptionPane.showMessageDialog(null, "Dados atualizados", "Messagem", JOptionPane.INFORMATION_MESSAGE);					
 				}
 				con .close();
 				limpar();					
@@ -439,13 +468,14 @@ public class OrdemServico extends JDialog {
 		txtId.setText(null);
 		txtOS.setText(null);
 		txtData.setText(null);
-		chkOrcamento.setText(null);
-		chkServico.setText(null);
+		txtPesquisar.setText(null);
 		txtValor.setText(null);
 		txtEquipamento.setText(null);
 		txtDefeito.setText(null);
 		txtTecnico.setText(null);
 		cboStatus.setSelectedItem(null);
+		buttonGroup.clearSelection();
+		
 		((DefaultTableModel) table.getModel()).setRowCount(0);
 		// gerenciar os botões (default)
 		btnAdicionar.setEnabled(true);
